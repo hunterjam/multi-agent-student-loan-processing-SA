@@ -4,7 +4,7 @@ import json
 import logging
 from typing import Dict, Any
 from agent_framework.azure import AzureOpenAIChatClient
-from agent_framework import ChatAgent, MCPStreamableHTTPTool
+from agent_framework import Agent, MCPStreamableHTTPTool
 
 logger = logging.getLogger(__name__)
 
@@ -81,12 +81,12 @@ class DecisionMakerAgent:
         self.azure_chat_client = azure_chat_client
         self.loan_approval_mcp_url = loan_approval_mcp_url
     
-    async def build_af_agent(self) -> ChatAgent:
-        """Build the Agent Framework ChatAgent with MCP tools.
+    async def build_af_agent(self) -> Agent:
+        """Build the Agent Framework Agent with MCP tools.
         Always rebuilds to ensure fresh MCP connection (avoids stale connection issues).
         
         Returns:
-            Configured ChatAgent with MCP tools
+            Configured Agent with MCP tools
         """
         # Always rebuild to ensure fresh connection
         logger.debug(f"Building Decision Maker Agent with MCP URL: {self.loan_approval_mcp_url}")
@@ -103,11 +103,11 @@ class DecisionMakerAgent:
             await mcp_tool.connect()
             logger.debug("MCP server connected successfully")
             
-            # Create ChatAgent with MCP tools
-            agent = ChatAgent(
+            # Create Agent with MCP tools
+            agent = Agent(
                 name=self.name,
                 instructions=self.DECISION_MAKER_INSTRUCTIONS,
-                chat_client=self.azure_chat_client,
+                client=self.azure_chat_client,
                 tools=[mcp_tool],
                 max_turns=10  # Allow multiple turns for tool calling
             )

@@ -40,7 +40,12 @@ class Settings(BaseSettings):
     APPLICATIONINSIGHTS_CONNECTION_STRING: str | None = Field(default=None)
     ENABLE_OTEL: bool = Field(default=True)
   
-    # Azure OpenAI configuration
+    # Azure Foundry Settings
+    USE_FOUNDRY: bool = Field(default=True)
+    AZURE_AI_PROJECT_ENDPOINT: str | None = Field(default=None)
+    AZURE_AI_MODEL_DEPLOYMENT_NAME: str = Field(default="gpt-4o")
+
+    # Azure OpenAI configuration (used by Foundry via AI Services endpoint)
     AZURE_OPENAI_ENDPOINT: str | None = Field(default=None)
     AZURE_OPENAI_KEY: str | None = Field(default=None)
     AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: str = Field(default="gpt-4o")

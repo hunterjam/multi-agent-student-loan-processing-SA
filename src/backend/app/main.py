@@ -16,8 +16,8 @@ def create_app() -> FastAPI:
     # Setup agent framework observability (optional - if available)
     if settings.ENABLE_OTEL:
         try:
-            from agent_framework.observability import setup_observability
-            setup_observability(enable_sensitive_data=settings.ENABLE_OTEL,applicationinsights_connection_string=settings.APPLICATIONINSIGHTS_CONNECTION_STRING)
+            from agent_framework.observability import enable_instrumentation
+            enable_instrumentation(enable_sensitive_data=settings.ENABLE_OTEL)
         except ImportError:
             logger.warning("Observability setup unavailable - continuing without it")
 

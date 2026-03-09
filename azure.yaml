@@ -1,0 +1,65 @@
+environment:
+  name: student-loan-processing
+  location: eastus
+
+name: student-loan-processing
+metadata:
+  template: student-loan-processing@1.0
+
+requiredVersions:
+  azd: '>= 1.18.0'
+
+parameters:
+  solutionPrefix:
+    type: string
+    default: loanproc
+    displayName: Solution Prefix
+    description: A unique prefix for all resources (3-15 chars)
+  azureAiServiceLocation:
+    type: string
+    default: eastus
+    displayName: AI Services Location
+    description: Location for Azure AI Foundry Services deployments
+  enableMonitoring:
+    type: boolean
+    default: false
+    displayName: Enable Monitoring (WAF)
+    description: Enable Log Analytics and Application Insights
+  enableScalability:
+    type: boolean
+    default: false
+    displayName: Enable Scalability (WAF)
+    description: Enable auto-scaling and higher SKUs
+  enableRedundancy:
+    type: boolean
+    default: false
+    displayName: Enable Redundancy (WAF)
+    description: Enable zone redundancy and geo-replication
+  enablePrivateNetworking:
+    type: boolean
+    default: false
+    displayName: Enable Private Networking (WAF)
+    description: Enable VNet integration and private endpoints
+
+infra:
+  provider: bicep
+  path: ./infra
+  module: main
+
+workflows:
+  up:
+    steps:
+      - azd: provision
+
+hooks:
+  postprovision:
+    windows:
+      run: ./scripts/postprovision.ps1
+      shell: pwsh
+      continueOnError: false
+      interactive: true
+    posix:
+      run: ./scripts/postprovision.sh
+      shell: sh
+      continueOnError: false
+      interactive: true

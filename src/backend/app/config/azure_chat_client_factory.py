@@ -20,8 +20,33 @@ from agent_framework import MCPStreamableHTTPTool, InMemoryCheckpointStorage
 
 
 def create_azure_chat_client():
-    """Factory function to create Azure chat client with proper authentication."""
-    if settings.AZURE_OPENAI_KEY:
+    """Factory function to create Azure chat client with proper authentication.
+    
+    When USE_FOUNDRY is enabled, uses the Azure AI Foundry project endpoint
+    for model access via AI Services. Falls back to direct Azure OpenAI
+    connection otherwise.
+    """
+    credential = None if settings.AZURE_OPENAI_KEY else get_azure_credential()
+    
+    if settings.USE_FOUNDRY and settings.AZURE_AI_PROJECT_ENDPOINT:
+        print("Creating AzureOpenAIChatClient via Azure Foundry (AI Services)")
+        # In Foundry mode, the OpenAI endpoint is derived from the AI Services resource
+        endpoint = settings.AZURE_OPENAI_ENDPOINT
+        deployment = settings.AZURE_AI_MODEL_DEPLOYMENT_NAME or settings.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
+        
+        if settings.AZURE_OPENAI_KEY:
+            return AzureOpenAIChatClient(
+                api_key=settings.AZURE_OPENAI_KEY,
+                endpoint=endpoint,
+                deployment_name=deployment
+            )
+        else:
+            return AzureOpenAIChatClient(
+                credential=credential,
+                endpoint=endpoint,
+                deployment_name=deployment
+            )
+    elif settings.AZURE_OPENAI_KEY:
         print("Creating AzureOpenAIChatClient with API key")
         return AzureOpenAIChatClient(
             api_key=settings.AZURE_OPENAI_KEY,
@@ -31,7 +56,7 @@ def create_azure_chat_client():
     else:
         print("Creating AzureOpenAIChatClient with credential")
         return AzureOpenAIChatClient(
-            credential=get_azure_credential(),
+            credential=credential,
             endpoint=settings.AZURE_OPENAI_ENDPOINT,
             deployment_name=settings.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
         )
