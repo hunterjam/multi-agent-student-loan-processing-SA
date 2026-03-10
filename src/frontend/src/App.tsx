@@ -1,9 +1,66 @@
 import { useState, useEffect } from "react";
+import {
+  Card,
+  Avatar,
+  Text,
+  Caption1,
+  Subtitle2,
+  Badge,
+  makeStyles,
+  tokens,
+} from "@fluentui/react-components";
+import { PersonRegular } from "@fluentui/react-icons";
 import { ProcessSidebar } from "./components/ProcessSidebar";
 import { ChatInterface } from "./components/ChatInterface";
 import { api, LoanStatusResponse } from "./services/api";
 
+const useStyles = makeStyles({
+  root: {
+    width: "100%",
+    height: "100%",
+    display: "flex",
+  },
+  mainContent: {
+    flex: 1,
+    overflowY: "auto",
+    backgroundColor: tokens.colorNeutralBackground2,
+  },
+  container: {
+    maxWidth: "56rem",
+    margin: "0 auto",
+    padding: "32px",
+  },
+  welcomeCard: {
+    marginBottom: "24px",
+    padding: "32px",
+  },
+  welcomeCardInner: {
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+  },
+  statusBar: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    marginTop: "16px",
+    paddingTop: "16px",
+    borderTop: `1px solid ${tokens.colorNeutralStroke1}`,
+  },
+  statusDot: {
+    width: "8px",
+    height: "8px",
+    borderRadius: "50%",
+    backgroundColor: tokens.colorPaletteGreenForeground1,
+    animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+  },
+  chatArea: {
+    height: "calc(100vh - 240px)",
+  },
+});
+
 export default function App() {
+  const styles = useStyles();
   const [applicationStarted, setApplicationStarted] = useState(false);
   const [threadId, setThreadId] = useState<string | undefined>(undefined);
   const [loanStatus, setLoanStatus] = useState<LoanStatusResponse | null>(null);
@@ -16,7 +73,6 @@ export default function App() {
     setThreadId(newThreadId);
   };
 
-  // Poll for loan status when threadId is available
   useEffect(() => {
     if (!threadId) return;
 
@@ -26,9 +82,8 @@ export default function App() {
       try {
         const status = await api.getLoanStatus(threadId);
         setLoanStatus(status);
-        
-        // Stop polling if completed or error
-        if (status.currentState === 'completed' || status.currentState === 'error') {
+
+        if (status.currentState === 'completed') {
           if (intervalId) {
             clearInterval(intervalId);
             intervalId = null;
@@ -39,10 +94,7 @@ export default function App() {
       }
     };
 
-    // Initial fetch
     pollStatus();
-
-    // Poll every 2 seconds
     intervalId = setInterval(pollStatus, 2000);
 
     return () => {
@@ -53,45 +105,48 @@ export default function App() {
   }, [threadId]);
 
   return (
-    <div className="size-full flex">
+    <div className={styles.root}>
       {applicationStarted && (
-        <ProcessSidebar 
+        <ProcessSidebar
           applicationId={loanStatus?.applicationId}
           stages={loanStatus?.stages}
           note={loanStatus?.note}
         />
       )}
-      
-      <div className="flex-1 overflow-y-auto bg-background">
-        <div className="max-w-4xl mx-auto p-8">
-          <div className="mb-6 p-8 bg-card rounded-lg border border-border shadow-sm">
-            <div className="flex items-start justify-between">
+
+      <div className={styles.mainContent}>
+        <div className={styles.container}>
+          <Card className={styles.welcomeCard}>
+            <div className={styles.welcomeCardInner}>
               <div>
-                <h2 className="mb-2">Welcome, Loan Applicant</h2>
-                <p className="text-muted-foreground">
-                  {applicationStarted 
+                <Subtitle2 style={{ display: "block", marginBottom: 8 }}>
+                  Welcome, Loan Applicant
+                </Subtitle2>
+                <Text style={{ color: tokens.colorNeutralForeground3 }}>
+                  {applicationStarted
                     ? "Your loan application is being processed. Our team will keep you informed of any updates."
                     : "Access professional loan advisory services and explore financing options tailored to your needs."}
-                </p>
+                </Text>
               </div>
-              <div className="flex-shrink-0 ml-4">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-              </div>
+              <Avatar
+                icon={<PersonRegular />}
+                color="brand"
+                size={48}
+                style={{ flexShrink: 0, marginLeft: 16 }}
+              />
             </div>
             {applicationStarted && loanStatus && (
-              <div className="mt-4 pt-4 border-t border-border flex items-center gap-2 text-sm text-muted-foreground">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                Application Status: {loanStatus.currentStage.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+              <div className={styles.statusBar}>
+                <div className={styles.statusDot} />
+                <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                  Application Status: {loanStatus.currentStage.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                </Caption1>
               </div>
             )}
-          </div>
+          </Card>
 
-          <div className="h-[calc(100vh-240px)]">
-            <ChatInterface 
+          <div className={styles.chatArea}>
+            <ChatInterface
               onApplicationStart={handleApplicationStart}
               threadId={threadId}
               onThreadIdUpdate={handleThreadIdUpdate}

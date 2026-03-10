@@ -8,6 +8,10 @@ import re
 from typing import Dict, Optional, Any
 from pathlib import Path
 import pymupdf4llm
+# Disable layout mode to avoid NameError bug in pymupdf4llm 1.27.x
+# where document_layout is referenced but never imported in __init__.py
+if hasattr(pymupdf4llm, 'use_layout'):
+    pymupdf4llm.use_layout(False)
 import openai
 import azure.identity
 from app.services.azure_blob_storage_client import BlobStorageProxy

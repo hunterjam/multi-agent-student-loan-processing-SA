@@ -145,14 +145,17 @@ class OrchestrationAgent:
       )
     
     @classmethod
-    def update_thread_state(cls, thread_id: str, state: ThreadState, message: str = ""):
+    def update_thread_state(cls, thread_id: str, state: ThreadState, message: str = "", error_stage: str = ""):
         """Update the state for a given thread"""
         if thread_id:
-            cls._thread_states[thread_id] = {
+            entry: Dict[str, Any] = {
                 "state": state.value,
                 "timestamp": datetime.utcnow().isoformat(),
                 "message": message
             }
+            if error_stage:
+                entry["error_stage"] = error_stage
+            cls._thread_states[thread_id] = entry
             logger.info(f"Thread {thread_id} state updated to: {state.value}")
     
     @classmethod
@@ -278,10 +281,14 @@ class OrchestrationAgent:
             current_stage = "approval_disbursement"
             
         elif current_state == ThreadState.ERROR.value:
-            # Mark current stage as error
-            stages[0]["status"] = "completed"
-            stages[1]["status"] = "error"
-            current_stage = "identity_verification"
+            # Mark the stage that failed as error
+            error_stage = state_info.get('error_stage', 'identity_verification')
+            stage_index = {s["id"]: i for i, s in enumerate(stages)}
+            err_idx = stage_index.get(error_stage, 1)
+            for i in range(err_idx):
+                stages[i]["status"] = "completed"
+            stages[err_idx]["status"] = "error"
+            current_stage = error_stage
             
         else:  # INITIAL
             stages[0]["status"] = "active"
@@ -772,7 +779,8 @@ class OrchestrationAgent:
                         OrchestrationAgent.update_thread_state(
                             thread_id,
                             ThreadState.ERROR,
-                            "Document validation failed - corrections needed"
+                            "Document validation failed - corrections needed",
+                            error_stage="identity_verification"
                         )
                         logger.info(f"Validation failed ({overall_status}) - corrections required")
                         
@@ -783,7 +791,8 @@ class OrchestrationAgent:
                         OrchestrationAgent.update_thread_state(
                             thread_id,
                             ThreadState.ERROR,
-                            f"Unexpected validation status: {overall_status}"
+                            f"Unexpected validation status: {overall_status}",
+                            error_stage="identity_verification"
                         )
                         logger.warning(f"Unexpected validation status received: {overall_status}")
                         
@@ -903,7 +912,8 @@ class OrchestrationAgent:
                             OrchestrationAgent.update_thread_state(
                                 thread_id,
                                 ThreadState.ERROR,
-                                f"Error during loan evaluation: {str(e)}"
+                                f"Error during loan evaluation: {str(e)}",
+                                error_stage="financial_assessment"
                             )
                             error_response = f"❌ **Loan Evaluation Error**\n\nError: Failed to evaluate loan application: {str(e)}\n\nPlease try again or contact support."
                             yield (error_response, False, thread_id)

@@ -1,5 +1,19 @@
-import { CheckCircle, Circle, Clock, XCircle } from "lucide-react";
-import { Badge } from "./ui/badge";
+import {
+  Text,
+  Caption1,
+  Subtitle2,
+  Badge,
+  makeStyles,
+  tokens,
+  mergeClasses,
+} from "@fluentui/react-components";
+import {
+  CheckmarkCircleFilled,
+  CircleRegular,
+  ClockRegular,
+  DismissCircleFilled,
+  DocumentRegular,
+} from "@fluentui/react-icons";
 import { LoanStage } from "../services/api";
 
 interface ProcessSidebarProps {
@@ -8,112 +22,170 @@ interface ProcessSidebarProps {
   note?: string;
 }
 
-// Default stages when no data is provided
 const defaultStages: LoanStage[] = [
-  {
-    id: "application_initiated",
-    title: "Application Initiated",
-    description: "Documents received",
-    status: "pending",
-    icon: "document"
-  },
-  {
-    id: "identity_verification",
-    title: "Identity Verification",
-    description: "Document validation",
-    status: "pending",
-    icon: "shield-check"
-  },
-  {
-    id: "financial_assessment",
-    title: "Financial Assessment",
-    description: "Credit & income review",
-    status: "pending",
-    icon: "currency-dollar"
-  },
-  {
-    id: "underwriting_review",
-    title: "Underwriting Review",
-    description: "Risk evaluation",
-    status: "pending",
-    icon: "clipboard-check"
-  },
-  {
-    id: "approval_disbursement",
-    title: "Approval & Disbursement",
-    description: "Final decision",
-    status: "pending",
-    icon: "check-circle"
-  },
+  { id: "application_initiated", title: "Application Initiated", description: "Documents received", status: "pending", icon: "document" },
+  { id: "identity_verification", title: "Identity Verification", description: "Document validation", status: "pending", icon: "shield-check" },
+  { id: "financial_assessment", title: "Financial Assessment", description: "Credit & income review", status: "pending", icon: "currency-dollar" },
+  { id: "underwriting_review", title: "Underwriting Review", description: "Risk evaluation", status: "pending", icon: "clipboard-check" },
+  { id: "approval_disbursement", title: "Approval & Disbursement", description: "Final decision", status: "pending", icon: "check-circle" },
 ];
 
+const useStyles = makeStyles({
+  root: {
+    width: "320px",
+    backgroundColor: tokens.colorNeutralBackground6,
+    borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
+    height: "100vh",
+    padding: "24px",
+    overflowY: "auto",
+    flexShrink: 0,
+  },
+  headerSection: {
+    marginBottom: "32px",
+    paddingBottom: "24px",
+    borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+  },
+  headerRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    marginBottom: "12px",
+  },
+  headerIcon: {
+    width: "32px",
+    height: "32px",
+    backgroundColor: tokens.colorBrandBackground,
+    borderRadius: tokens.borderRadiusMedium,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  stagesContainer: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "4px",
+  },
+  stageCard: {
+    display: "flex",
+    gap: "16px",
+    padding: "12px",
+    borderRadius: tokens.borderRadiusMedium,
+    transition: "background-color 0.15s ease",
+  },
+  stageActive: {
+    backgroundColor: `color-mix(in srgb, ${tokens.colorBrandBackground} 10%, transparent)`,
+    border: `1px solid color-mix(in srgb, ${tokens.colorBrandBackground} 30%, transparent)`,
+  },
+  stageCompleted: {
+    backgroundColor: `color-mix(in srgb, ${tokens.colorNeutralBackground3} 50%, transparent)`,
+  },
+  stageError: {
+    backgroundColor: `color-mix(in srgb, ${tokens.colorPaletteRedBackground1} 30%, transparent)`,
+    border: `2px solid ${tokens.colorPaletteRedBorder1}`,
+  },
+  stagePending: {
+    backgroundColor: "transparent",
+  },
+  stageContent: {
+    flex: 1,
+    minWidth: 0,
+  },
+  stageHeader: {
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: "8px",
+  },
+  connector: {
+    marginLeft: "22px",
+    height: "16px",
+    width: "2px",
+    backgroundColor: tokens.colorNeutralStroke2,
+  },
+  noteBox: {
+    marginTop: "32px",
+    padding: "16px",
+    borderRadius: tokens.borderRadiusMedium,
+    backgroundColor: `color-mix(in srgb, ${tokens.colorBrandBackground} 10%, transparent)`,
+    border: `1px solid color-mix(in srgb, ${tokens.colorBrandBackground} 20%, transparent)`,
+  },
+});
+
 export function ProcessSidebar({ applicationId = "#LA-2025-1847", stages = defaultStages, note }: ProcessSidebarProps) {
+  const styles = useStyles();
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "completed":
+        return <CheckmarkCircleFilled style={{ fontSize: 20, color: tokens.colorPaletteGreenForeground1 }} />;
+      case "active":
+        return <ClockRegular style={{ fontSize: 20, color: tokens.colorBrandForeground1 }} />;
+      case "error":
+        return <DismissCircleFilled style={{ fontSize: 28, color: tokens.colorPaletteRedForeground1 }} />;
+      default:
+        return <CircleRegular style={{ fontSize: 20, color: tokens.colorNeutralForeground4 }} />;
+    }
+  };
+
+  const getStageClass = (status: string) => {
+    switch (status) {
+      case "active": return styles.stageActive;
+      case "completed": return styles.stageCompleted;
+      case "error": return styles.stageError;
+      default: return styles.stagePending;
+    }
+  };
+
   return (
-    <div className="w-80 bg-sidebar border-r border-sidebar-border h-screen p-6 overflow-y-auto">
-      <div className="mb-8 pb-6 border-b border-sidebar-border">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-8 h-8 bg-sidebar-primary rounded flex items-center justify-center">
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
+    <div className={styles.root}>
+      <div className={styles.headerSection}>
+        <div className={styles.headerRow}>
+          <div className={styles.headerIcon}>
+            <DocumentRegular style={{ fontSize: 20, color: tokens.colorNeutralForegroundOnBrand }} />
           </div>
-          <h2 className="text-sidebar-foreground mb-0">Loan Application</h2>
+          <Subtitle2>Loan Application</Subtitle2>
         </div>
-        <p className="text-sidebar-foreground/70 text-sm">
+        <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
           Application ID: {applicationId}
-        </p>
+        </Caption1>
       </div>
 
-      <div className="space-y-1">
+      <div className={styles.stagesContainer}>
         {stages.map((stage, index) => (
           <div key={stage.id}>
-            <div
-              className={`flex gap-4 p-4 rounded-lg transition-colors ${
-                stage.status === "active"
-                  ? "bg-sidebar-primary/10 border border-sidebar-primary/30"
-                  : stage.status === "completed"
-                  ? "bg-sidebar-accent/50"
-                  : stage.status === "error"
-                  ? "bg-red-500/20 border-2 border-red-500"
-                  : "bg-transparent"
-              }`}
-            >
-              <div className="flex-shrink-0 mt-0.5">
-                {stage.status === "completed" && <CheckCircle className="w-5 h-5 text-emerald-500" />}
-                {stage.status === "active" && <Clock className="w-5 h-5 text-sidebar-primary" />}
-                {stage.status === "pending" && <Circle className="w-5 h-5 text-sidebar-foreground/30" />}
-                {stage.status === "error" && <XCircle className="w-7 h-7 text-red-600" strokeWidth={4} style={{ color: '#dc2626' }} />}
+            <div className={mergeClasses(styles.stageCard, getStageClass(stage.status))}>
+              <div style={{ flexShrink: 0, marginTop: 2 }}>
+                {getStatusIcon(stage.status)}
               </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
-                    <h4 className="mb-0.5 text-sidebar-foreground">{stage.title}</h4>
-                    <p className="text-sm text-sidebar-foreground/60">
+              <div className={styles.stageContent}>
+                <div className={styles.stageHeader}>
+                  <div style={{ flex: 1 }}>
+                    <Text weight="semibold" size={200} style={{ display: "block", marginBottom: 2 }}>
+                      {stage.title}
+                    </Text>
+                    <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
                       {stage.description}
-                    </p>
+                    </Caption1>
                   </div>
                   {stage.status === "active" && (
-                    <Badge variant="default" className="bg-sidebar-primary text-white shrink-0 border-0">
+                    <Badge appearance="filled" color="brand" size="small">
                       Active
                     </Badge>
                   )}
                 </div>
               </div>
             </div>
-
-            {index < stages.length - 1 && (
-              <div className="ml-[30px] h-4 w-0.5 bg-sidebar-border" />
-            )}
+            {index < stages.length - 1 && <div className={styles.connector} />}
           </div>
         ))}
       </div>
 
       {note && (
-        <div className="mt-8 p-4 bg-sidebar-primary/10 rounded-lg border border-sidebar-primary/20">
-          <p className="text-sm text-sidebar-foreground/80">
-            <span className="text-sidebar-primary">ⓘ Note:</span> {note}
-          </p>
+        <div className={styles.noteBox}>
+          <Caption1 style={{ color: tokens.colorNeutralForeground2 }}>
+            <Text style={{ color: tokens.colorBrandForeground1 }}>&#9432; Note:</Text> {note}
+          </Caption1>
         </div>
       )}
     </div>
