@@ -303,16 +303,9 @@ class OrchestrationAgent:
         Returns:
             Workflow configured with doc_extractor -> formatter pipeline and checkpointing
         """
-        # Build the workflow using fluent API:
-        # 1) add_edge(from_node, to_node) defines sequential edge
-        # 2) set_start_executor(node) declares the entry point
-        # 3) with_checkpointing(storage) enables state persistence
-        # 4) build() finalizes and returns an immutable Workflow object
         workflow = (
-            WorkflowBuilder()
+            WorkflowBuilder(start_executor=self.doc_extractor, checkpoint_storage=self.checkpoint_storage)
             .add_edge(self.doc_extractor, self.response_formatter)
-            .set_start_executor(self.doc_extractor)
-            .with_checkpointing(self.checkpoint_storage)
             .build()
         )
         
@@ -605,9 +598,7 @@ class OrchestrationAgent:
             Workflow configured with loan_application executor and checkpointing
         """
         workflow = (
-            WorkflowBuilder()
-            .set_start_executor(self.loan_application)
-            .with_checkpointing(self.checkpoint_storage)
+            WorkflowBuilder(start_executor=self.loan_application, checkpoint_storage=self.checkpoint_storage)
             .build()
         )
         
@@ -620,9 +611,7 @@ class OrchestrationAgent:
             Workflow configured with intent_classifier executor and checkpointing
         """
         workflow = (
-            WorkflowBuilder()
-            .set_start_executor(self.intent_classifier)
-            .with_checkpointing(self.checkpoint_storage)
+            WorkflowBuilder(start_executor=self.intent_classifier, checkpoint_storage=self.checkpoint_storage)
             .build()
         )
         
@@ -809,9 +798,7 @@ class OrchestrationAgent:
                 
                 # Use error handler workflow for consistent error formatting
                 error_workflow = (
-                    WorkflowBuilder()
-                    .set_start_executor(self.error_handler)
-                    .with_checkpointing(self.checkpoint_storage)
+                    WorkflowBuilder(start_executor=self.error_handler, checkpoint_storage=self.checkpoint_storage)
                     .build()
                 )
                 
