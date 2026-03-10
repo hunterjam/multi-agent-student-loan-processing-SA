@@ -5,7 +5,6 @@ import {
   Avatar,
   Spinner,
   Card,
-  CardHeader,
   Text,
   Caption1,
   Subtitle2,

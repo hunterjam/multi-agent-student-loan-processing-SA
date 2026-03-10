@@ -1,14 +1,5 @@
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, Request
-from typing import List, Any, Optional
+from fastapi import APIRouter, HTTPException, Depends, Request
 import logging
-
-print("=" * 80)
-print("CHAT_ROUTERS.PY MODULE LOADED - NEW VERSION WITH DEBUG")
-print("=" * 80)
-
-# Foundry Agent based dependencies
-#from app.agents.foundry.supervisor_agent_foundry import SupervisorAgent
-#from app.config.container_foundry import Container
 
 # Azure Chat based agents dependencies
 from app.agents.loan_workflow.loan_workflow_orchestrator import OrchestrationAgent
@@ -16,7 +7,6 @@ from app.config.azure_chat_client_factory import Container
 
 from app.models.chat import ChatAppRequest, ChatResponse, ChatResponseMessage, ChatChoice, ChatContext, ChatDelta
 from app.models.chat import ChatMessage as AppChatMessage
-# from agent_framework import ChatMessage, Role
 from dependency_injector.wiring import Provide, inject
 from fastapi.responses import StreamingResponse
 import json
@@ -57,28 +47,6 @@ def _convert_string_to_chat_response(content: str, thread_id: str | None) -> Cha
     )
 
     return ChatResponse(choices=[choice], threadId=thread_id if thread_id else "")
-
-# Helper function to convert ChatAppRequest to ChatMessageList
-# def _chat_app_request_to_chat_message_list(chat_request: ChatAppRequest) -> ChatMessageList:
-#     """Convert a ChatAppRequest to a ChatMessageList for agent-framework threading, mapping roles appropriately."""
-#     messages: list[ChatMessage] = []
-#     for msg in chat_request.messages[:-1]:
-#         # Map roles from ChatAppRequest to agent-framework ChatMessage roles
-#         if msg.role == "user":
-#             af_role = Role.USER
-#         elif msg.role == "assistant":
-#             af_role = Role.ASSISTANT
-#         else:
-#             # raise exception that role is not recognized
-#             raise ValueError(f"Unrecognized role from ChatAppRequest: {msg.role}. The message content is: {msg.content} ")
-
-#         # Create a new ChatMessage instance
-#         af_message = ChatMessage(
-#             role=af_role,
-#             text=msg.content
-#         )
-#         messages.append(af_message)
-#     return ChatMessageList(messages)
 
 def _format_stream_chunk(content: str, is_final: bool = False, thread_id: str | None = None) -> str:
     """Format a chunk for streaming response in NDJSON format."""
